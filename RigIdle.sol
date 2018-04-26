@@ -304,7 +304,13 @@ contract RigIdle  {
     {
         require(idx <= cycleCount);
         ICOFund = minerICOPerCycle[miner][idx];
-        ICOShare = (honeyPotPerCycle[idx] * minerICOPerCycle[miner][idx]) / globalICOPerCycle[idx];
+        if(idx < cycleCount)
+        {
+            ICOShare = (honeyPotPerCycle[idx] * minerICOPerCycle[miner][idx]) / globalICOPerCycle[idx];
+        } else 
+        {
+            ICOShare = (honeyPotAmount / 5) * minerICOPerCycle[miner][idx] / globalICOPerCycle[idx];
+        }
         lastClaimIndex = miners[miner].lastPotClaimIndex;
     }
     
@@ -673,12 +679,10 @@ contract RigIdle  {
     //--------------------------------------------------------------------------
     function BuyHandler(uint amount) public payable
     {
-        // add 2% to jakcpot
-        // add 90% (default) to honeyPot
+        // add 90% to honeyPot
         honeyPotAmount += (amount * honeyPotSharePct) / 100;
-        jackPot += amount / 50;
-        // default 100 - (90+2) = 8%
-        devFund += (amount * (100-(honeyPotSharePct+2))) / 100;
+        jackPot += amount / 100;
+        devFund += (amount * (100-(honeyPotSharePct+1))) / 100;
     }
     
     function WithdrawPotShare() public
