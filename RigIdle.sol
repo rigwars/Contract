@@ -338,7 +338,7 @@ contract RigIdle  {
     // -------------------------------------------------------------------------
     // RigWars game handler functions
     // -------------------------------------------------------------------------
-    function StartNewMiner() public
+    function StartNewMiner() external
     {
         require(miners[msg.sender].lastUpdateTime == 0);
         
@@ -355,7 +355,7 @@ contract RigIdle  {
         ++topindex;
     }
     
-    function UpgradeRig(uint8 rigIdx, uint16 count) public
+    function UpgradeRig(uint8 rigIdx, uint16 count) external
     {
         require(rigIdx < NUMBER_OF_RIG_TYPES);
         require(count > 0);
@@ -380,7 +380,7 @@ contract RigIdle  {
         m.money -= price;
     }
     
-    function UpgradeRigETH(uint8 rigIdx, uint256 count) public payable
+    function UpgradeRigETH(uint8 rigIdx, uint256 count) external payable
     {
         require(rigIdx < NUMBER_OF_RIG_TYPES);
         require(count > 0);
@@ -405,7 +405,7 @@ contract RigIdle  {
             m.rigs[rigIdx] = rigData[rigIdx].limit;
     }
     
-    function UpdateMoney() public
+    function UpdateMoney() private
     {
         require(miners[msg.sender].lastUpdateTime != 0);
         require(block.timestamp >= miners[msg.sender].lastUpdateTime);
@@ -423,7 +423,7 @@ contract RigIdle  {
         }
     }
     
-    function UpdateMoneyAt(address addr) internal
+    function UpdateMoneyAt(address addr) private
     {
         require(miners[addr].lastUpdateTime != 0);
         require(block.timestamp >= miners[addr].lastUpdateTime);
@@ -441,7 +441,7 @@ contract RigIdle  {
         }
     }
     
-    function BuyUpgrade(uint256 idx) public payable
+    function BuyUpgrade(uint256 idx) external payable
     {
         require(idx < NUMBER_OF_UPGRADES);
         require(msg.value >= boostData[idx].priceInWEI);
@@ -459,7 +459,7 @@ contract RigIdle  {
     //--------------------------------------------------------------------------
     // BOOSTER handlers
     //--------------------------------------------------------------------------
-    function BuyBooster() public payable 
+    function BuyBooster() external payable 
     {
         require(msg.value >= nextBoosterPrice);
         require(miners[msg.sender].lastUpdateTime != 0);
@@ -498,7 +498,7 @@ contract RigIdle  {
     // PVP handler
     //--------------------------------------------------------------------------
     // 0 for attacker 1 for defender
-    function BuyTroop(uint256 idx, uint256 count) public payable
+    function BuyTroop(uint256 idx, uint256 count) external payable
     {
         require(idx < NUMBER_OF_TROOPS);
         require(count > 0);
@@ -526,7 +526,7 @@ contract RigIdle  {
         pvp.troops[idx] += count;
     }
     
-    function Attack(address defenderAddr) public
+    function Attack(address defenderAddr) external
     {
         require(msg.sender != defenderAddr);
         require(miners[msg.sender].lastUpdateTime != 0);
@@ -614,21 +614,21 @@ contract RigIdle  {
     //--------------------------------------------------------------------------
     // ICO/Pot share functions
     //--------------------------------------------------------------------------
-    function ReleaseICO() public
+    function ReleaseICO() external
     {
         require(miners[msg.sender].lastUpdateTime != 0);
         require(nextPotDistributionTime <= block.timestamp);
         require(honeyPotAmount > 0);
         require(globalICOPerCycle[cycleCount] > 0);
 
-        nextPotDistributionTime = block.timestamp + 180; //+ 86400;
+        nextPotDistributionTime = block.timestamp + 86400;
 
         honeyPotPerCycle[cycleCount] = honeyPotAmount / 5; // 20% of the pot
         
         honeyPotAmount -= honeyPotAmount / 5;
 
         honeyPotPerCycle.push(0);
-        globalICOPerCycle.push(1);
+        globalICOPerCycle.push(0);
         cycleCount = cycleCount + 1;
 
         MinerData storage jakpotWinner = miners[msg.sender];
@@ -636,7 +636,7 @@ contract RigIdle  {
         jackPot = 0;
     }
     
-    function FundICO(uint amount) public
+    function FundICO(uint amount) external
     {
         require(miners[msg.sender].lastUpdateTime != 0);
         require(amount > 0);
@@ -653,7 +653,7 @@ contract RigIdle  {
         minerICOPerCycle[msg.sender][cycleCount] = minerICOPerCycle[msg.sender][cycleCount].add(uint(amount));
     }
     
-    function WithdrawICOEarnings() public
+    function WithdrawICOEarnings() external
     {
         MinerData storage m = miners[msg.sender];
         
@@ -677,7 +677,7 @@ contract RigIdle  {
     //--------------------------------------------------------------------------
     // ETH handler functions
     //--------------------------------------------------------------------------
-    function BuyHandler(uint amount) public payable
+    function BuyHandler(uint amount) private
     {
         // add 90% to honeyPot
         honeyPotAmount += (amount * honeyPotSharePct) / 100;
@@ -690,6 +690,7 @@ contract RigIdle  {
         MinerData storage m = miners[msg.sender];
         
         require(m.unclaimedPot > 0);
+        require(m.lastUpdateTime != 0);
         
         uint256 amntToSend = m.unclaimedPot;
         m.unclaimedPot = 0;
