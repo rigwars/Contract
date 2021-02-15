@@ -116,7 +116,7 @@ contract RigIdle  {
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
-    function RigIdle() public {
+    constructor() public {
         owner = msg.sender;
         
         //                   price,           prod.     upgrade,        priceETH, limit
@@ -124,22 +124,22 @@ contract RigIdle  {
         rigData[1] = RigData(1024,            64,       512,             0,          64);
         rigData[2] = RigData(204800,          1024,     102400,          0,          128);
         rigData[3] = RigData(25600000,        8192,     12800000,        0,          128);
-        rigData[4] = RigData(30000000000,     65536,    30000000000,     0.01 ether, 256);
+        rigData[4] = RigData(30000000000,     65536,    30000000000,     0.5 ether,  256);
         rigData[5] = RigData(30000000000,     100000,   10000000000,     0,          256);
         rigData[6] = RigData(300000000000,    500000,   100000000000,    0,          256);
-        rigData[7] = RigData(50000000000000,  3000000,  12500000000000,  0.1 ether,  256);
+        rigData[7] = RigData(50000000000000,  3000000,  12500000000000,  5.0 ether,  256);
         rigData[8] = RigData(100000000000000, 30000000, 50000000000000,  0,          256);
         
-        boostData[0] = BoostData(30,  0.01 ether);
-        boostData[1] = BoostData(50,  0.1 ether);
-        boostData[2] = BoostData(100, 1 ether);
+        boostData[0] = BoostData(30,  0.5 ether);
+        boostData[1] = BoostData(50,  5 ether);
+        boostData[2] = BoostData(100, 50 ether);
         
         topindex = 0;
         honeyPotAmount = 0;
         devFund = 0;
         jackPot = 0;
         nextPotDistributionTime = block.timestamp;
-        honeyPotSharePct = 90;
+        honeyPotSharePct = 78;
         
         // has to be set to a value
         boosterHolders[0] = owner;
@@ -149,15 +149,15 @@ contract RigIdle  {
         boosterHolders[4] = owner;
         
         boosterIndex = 0;
-        nextBoosterPrice = 0.1 ether;
+        nextBoosterPrice = 10 ether;
         
         //pvp
         troopData[0] = TroopData(10,     0,      100000,   0);
         troopData[1] = TroopData(1000,   0,      80000000, 0);
-        troopData[2] = TroopData(100000, 0,      0,        0.01 ether);
+        troopData[2] = TroopData(100000, 0,      0,        0.5 ether);
         troopData[3] = TroopData(0,      15,     100000,   0);
         troopData[4] = TroopData(0,      1500,   80000000, 0);
-        troopData[5] = TroopData(0,      150000, 0,        0.01 ether);
+        troopData[5] = TroopData(0,      150000, 0,        0.5 ether);
         
         honeyPotPerCycle.push(0);
         globalICOPerCycle.push(1);
@@ -167,7 +167,7 @@ contract RigIdle  {
     //--------------------------------------------------------------------------
     // Data access functions
     //--------------------------------------------------------------------------
-    function GetMinerData(address minerAddr) public constant returns 
+    function GetMinerData(address minerAddr) public view returns 
         (uint256 money, uint256 lastupdate, uint256 prodPerSec, 
          uint256[9] rigs, uint[3] upgrades, uint256 unclaimedPot, bool hasBooster, uint256 unconfirmedMoney)
     {
@@ -193,18 +193,18 @@ contract RigIdle  {
         unconfirmedMoney = money + (prodPerSec * (now - lastupdate));
     }
     
-    function GetTotalMinerCount() public constant returns (uint256 count)
+    function GetTotalMinerCount() public view returns (uint256 count)
     {
         count = topindex;
     }
     
-    function GetMinerAt(uint256 idx) public constant returns (address minerAddr)
+    function GetMinerAt(uint256 idx) public view returns (address minerAddr)
     {
         require(idx < topindex);
         minerAddr = indexes[idx];
     }
     
-    function GetPotInfo() public constant returns (uint256 _honeyPotAmount, uint256 _devFunds, uint256 _jackPot, uint256 _nextDistributionTime)
+    function GetPotInfo() public view returns (uint256 _honeyPotAmount, uint256 _devFunds, uint256 _jackPot, uint256 _nextDistributionTime)
     {
         _honeyPotAmount = honeyPotAmount;
         _devFunds = devFund;
@@ -212,7 +212,7 @@ contract RigIdle  {
         _nextDistributionTime = nextPotDistributionTime;
     }
     
-    function GetProductionPerSecond(address minerAddr) public constant returns (uint256 personalProduction)
+    function GetProductionPerSecond(address minerAddr) public view returns (uint256 personalProduction)
     {
         MinerData storage m = miners[minerAddr];
         
@@ -230,7 +230,7 @@ contract RigIdle  {
         personalProduction = personalProduction * productionSpeed / 100;
     }
     
-    function GetGlobalProduction() public constant returns (uint256 globalMoney, uint256 globalHashRate)
+    function GetGlobalProduction() public view returns (uint256 globalMoney, uint256 globalHashRate)
     {
         globalMoney = 0;
         globalHashRate = 0;
@@ -243,7 +243,7 @@ contract RigIdle  {
         }
     }
     
-    function GetBoosterData() public constant returns (address[5] _boosterHolders, uint256 currentPrice, uint256 currentIndex)
+    function GetBoosterData() public view returns (address[5] _boosterHolders, uint256 currentPrice, uint256 currentIndex)
     {
         for(uint i = 0; i < NUMBER_OF_BOOSTERS; ++i)
         {
@@ -253,7 +253,7 @@ contract RigIdle  {
         currentIndex = boosterIndex;
     }
     
-    function HasBooster(address addr) public constant returns (bool hasBoost)
+    function HasBooster(address addr) public view returns (bool hasBoost)
     { 
         for(uint i = 0; i < NUMBER_OF_BOOSTERS; ++i)
         {
@@ -263,7 +263,7 @@ contract RigIdle  {
         return false;
     }
     
-    function GetPVPData(address addr) public constant returns (uint256 attackpower, uint256 defensepower, uint256 immunityTime, uint256 exhaustTime,
+    function GetPVPData(address addr) public view returns (uint256 attackpower, uint256 defensepower, uint256 immunityTime, uint256 exhaustTime,
     uint256[6] troops)
     {
         PVPData storage a = pvpMap[addr];
@@ -282,12 +282,12 @@ contract RigIdle  {
         }
     }
     
-    function GetCurrentICOCycle() public constant returns (uint256)
+    function GetCurrentICOCycle() public view returns (uint256)
     {
         return cycleCount;
     }
     
-    function GetICOData(uint256 idx) public constant returns (uint256 ICOFund, uint256 ICOPot)
+    function GetICOData(uint256 idx) public view returns (uint256 ICOFund, uint256 ICOPot)
     {
         require(idx <= cycleCount);
         ICOFund = globalICOPerCycle[idx];
@@ -300,7 +300,7 @@ contract RigIdle  {
         }
     }
     
-    function GetMinerICOData(address miner, uint256 idx) public constant returns (uint256 ICOFund, uint256 ICOShare, uint256 lastClaimIndex)
+    function GetMinerICOData(address miner, uint256 idx) public view returns (uint256 ICOFund, uint256 ICOShare, uint256 lastClaimIndex)
     {
         require(idx <= cycleCount);
         ICOFund = minerICOPerCycle[miner][idx];
@@ -314,7 +314,7 @@ contract RigIdle  {
         lastClaimIndex = miners[miner].lastPotClaimIndex;
     }
     
-    function GetMinerUnclaimedICOShare(address miner) public constant returns (uint256 unclaimedPot)
+    function GetMinerUnclaimedICOShare(address miner) public view returns (uint256 unclaimedPot)
     {
         MinerData storage m = miners[miner];
         
@@ -564,6 +564,10 @@ contract RigIdle  {
             MinerData storage m = miners[defenderAddr];
             MinerData storage m2 = miners[msg.sender];
             uint256 moneyStolen = m.money / 2;
+            
+            if(moneyStolen > attackpower * 10) {
+                moneyStolen = attackpower * 10;
+            }
          
             for(i = DEFENDER_START_IDX; i < DEFENDER_END_IDX; ++i)
             {
@@ -679,10 +683,9 @@ contract RigIdle  {
     //--------------------------------------------------------------------------
     function BuyHandler(uint amount) private
     {
-        // add 90% to honeyPot
         honeyPotAmount += (amount * honeyPotSharePct) / 100;
-        jackPot += amount / 100;
-        devFund += (amount * (100-(honeyPotSharePct+1))) / 100;
+        jackPot += (amount * 2) / 100;
+        devFund += (amount * (100-(honeyPotSharePct+2))) / 100;
     }
     
     function WithdrawPotShare() public
@@ -709,10 +712,5 @@ contract RigIdle  {
         {
             devFund = 0;
         }
-    }
-    
-    // fallback payment to pot
-    function() public payable {
-         devFund += msg.value;
     }
 }
